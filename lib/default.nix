@@ -2,12 +2,11 @@
 
 let
   inherit (builtins)
-    fetchurl
     fetchGit
     readFile
     fromJSON
     ;
-  inherit (pkgs) lib;
+  inherit (pkgs) fetchurl lib;
   inherit (lib) optionalAttrs;
 
   applyFilter =
