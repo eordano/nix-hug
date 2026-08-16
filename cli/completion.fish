@@ -59,39 +59,21 @@ complete -c nix-hug -n __nix_hug_no_subcommand -a import -d 'Import model/datase
 complete -c nix-hug -n __nix_hug_no_subcommand -a import-all -d 'Import all cached models/datasets into Nix store'
 complete -c nix-hug -n __nix_hug_no_subcommand -a scan -d 'Scan Hugging Face cache directory'
 
-# fetch options
-complete -c nix-hug -n '__nix_hug_using_subcommand fetch' -l ref -r -d 'Git ref to fetch'
-complete -c nix-hug -n '__nix_hug_using_subcommand fetch' -l include -r -d 'Include filter pattern'
-complete -c nix-hug -n '__nix_hug_using_subcommand fetch' -l exclude -r -d 'Exclude filter pattern'
-complete -c nix-hug -n '__nix_hug_using_subcommand fetch' -l file -r -F -d 'Filter file'
+for sub in fetch ls export import
+    complete -c nix-hug -n "__nix_hug_using_subcommand $sub" -l ref -r -d 'Git ref'
+    complete -c nix-hug -n "__nix_hug_using_subcommand $sub" -l include -r -d 'Include filter pattern'
+    complete -c nix-hug -n "__nix_hug_using_subcommand $sub" -l exclude -r -d 'Exclude filter pattern'
+    complete -c nix-hug -n "__nix_hug_using_subcommand $sub" -l file -r -F -d 'Filter file'
+    complete -c nix-hug -n "__nix_hug_using_subcommand $sub" -l help -d 'Show help'
+end
+
+complete -c nix-hug -n '__nix_hug_using_subcommand fetch' -l lfs-url -r -d 'LFS download URL prefix, for git+ URLs'
+complete -c nix-hug -n '__nix_hug_using_subcommand fetch' -l vendor -r -F -d 'Vendor the file tree into DIR for offline evaluation'
 complete -c nix-hug -n '__nix_hug_using_subcommand fetch' -l dry-run -d 'Show what would be fetched'
-complete -c nix-hug -n '__nix_hug_using_subcommand fetch' -l help -d 'Show help'
 
-# ls options
-complete -c nix-hug -n '__nix_hug_using_subcommand ls' -l ref -r -d 'Git ref'
-complete -c nix-hug -n '__nix_hug_using_subcommand ls' -l include -r -d 'Include filter pattern'
-complete -c nix-hug -n '__nix_hug_using_subcommand ls' -l exclude -r -d 'Exclude filter pattern'
-complete -c nix-hug -n '__nix_hug_using_subcommand ls' -l file -r -F -d 'Filter file'
-complete -c nix-hug -n '__nix_hug_using_subcommand ls' -l help -d 'Show help'
-
-# export options
-complete -c nix-hug -n '__nix_hug_using_subcommand export' -l ref -r -d 'Git ref'
-complete -c nix-hug -n '__nix_hug_using_subcommand export' -l include -r -d 'Include filter pattern'
-complete -c nix-hug -n '__nix_hug_using_subcommand export' -l exclude -r -d 'Exclude filter pattern'
-complete -c nix-hug -n '__nix_hug_using_subcommand export' -l file -r -F -d 'Filter file'
-complete -c nix-hug -n '__nix_hug_using_subcommand export' -l help -d 'Show help'
-
-# import options
-complete -c nix-hug -n '__nix_hug_using_subcommand import' -l ref -r -d 'Git ref'
-complete -c nix-hug -n '__nix_hug_using_subcommand import' -l include -r -d 'Include filter pattern'
-complete -c nix-hug -n '__nix_hug_using_subcommand import' -l exclude -r -d 'Exclude filter pattern'
-complete -c nix-hug -n '__nix_hug_using_subcommand import' -l file -r -F -d 'Filter file'
-complete -c nix-hug -n '__nix_hug_using_subcommand import' -l help -d 'Show help'
 complete -c nix-hug -n '__nix_hug_using_subcommand import' -a '(__nix_hug_cached_repos)' -d 'Cached repository'
 
-# import-all options
 complete -c nix-hug -n '__nix_hug_using_subcommand import-all' -s y -l yes -d 'Skip confirmation prompt'
 complete -c nix-hug -n '__nix_hug_using_subcommand import-all' -l help -d 'Show help'
 
-# scan options
 complete -c nix-hug -n '__nix_hug_using_subcommand scan' -l help -d 'Show help'

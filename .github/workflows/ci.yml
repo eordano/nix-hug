@@ -8,9 +8,83 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - uses: DeterminateSystems/nix-installer-action@c5a866b6ab867e88becbed4467b93592bce69f8a # v21
-      - uses: DeterminateSystems/magic-nix-cache-action@565684385bcd71bad329742eefe8d12f2e765b39 # v13
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      - name: Show disk space
+        run: df -h /
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | \
+            sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - uses: DeterminateSystems/nix-installer-action@c5a866b6ab867e88becbed4467b93592bce69f8a
+
+      - name: Evaluation is offline when the file tree is vendored
+        run: |
+          nix eval --offline --impure --raw --expr '
+            let
+              pkgs = import <nixpkgs> { };
+              nh = import ./lib { inherit pkgs; };
+            in
+            (nh.fetchModel {
+              repoId = "stas/tiny-random-llama-2";
+              rev = "3579d71fd57e04f5a364d824d3a2ec3e913dbb67";
+              fileTree = builtins.fromJSON (builtins.readFile ./tests/fixtures/tiny-llama-tree.json);
+              fileTreeHash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
+              gitRepoHash = "sha256-BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB=";
+            }).drvPath
+          '
+
       - name: Check flake
-        run: nix flake check
+        run: nix flake check -L
+
+  release:
+    needs: test
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          fetch-depth: 0
+
+      - name: Release when the flake version changes
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BEFORE: ${{ github.event.before }}
+        run: |
+          read_version() { sed -n 's/^ *version = "\(.*\)";$/\1/p'; }
+
+          version=$(read_version <flake.nix)
+          if [ -z "$version" ]; then
+            echo "could not read version from flake.nix" >&2
+            exit 1
+          fi
+
+          previous=$(git show "$BEFORE:flake.nix" 2>/dev/null | read_version || true)
+          if [ "$version" = "$previous" ]; then
+            echo "version unchanged at $version; nothing to release"
+            exit 0
+          fi
+
+          if ! grep -qF "VERSION=\"$version\"" cli/lib/common.sh ||
+            ! grep -qF "lib = \"$version\";" lib/default.nix; then
+            echo "version strings disagree with flake.nix ($version)" >&2
+            exit 1
+          fi
+
+          if gh release view "v$version" >/dev/null 2>&1; then
+            echo "v$version is already released"
+            exit 0
+          fi
+
+          gh release create "v$version" \
+            --target "$GITHUB_SHA" \
+            --title "v$version" \
+            --generate-notes
