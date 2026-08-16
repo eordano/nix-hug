@@ -2,68 +2,51 @@
 set -euo pipefail
 
 NIX_HUG_LIB_DIR="${NIX_HUG_LIB_DIR:-$(dirname "$0")/lib}"
+# shellcheck source=/dev/null
 source "${NIX_HUG_LIB_DIR}/common.sh"
+# shellcheck source=/dev/null
 source "${NIX_HUG_LIB_DIR}/commands.sh"
+# shellcheck source=/dev/null
 source "${NIX_HUG_LIB_DIR}/ui.sh"
 
 main() {
-    local command=""
-    
-    while [[ $# -gt 0 ]]; do
-        case $1 in
-            --debug)
-                DEBUG=true
-                export CURRENT_LOG_LEVEL=DEBUG
-                shift
-                ;;
-            --help|-h)
-                show_help
-                exit 0
-                ;;
-            --version)
-                echo "nix-hug version ${VERSION}"
-                exit 0
-                ;;
-            fetch|ls|export|import|import-all|scan)
-                command="$1"
-                shift
-                break
-                ;;
-            *)
-                error "Unknown option or command: $1"
-                show_help
-                exit 1
-                ;;
-        esac
-    done
+  local command=""
 
-    if [[ -z "$command" ]]; then
+  while [[ $# -gt 0 ]]; do
+    case $1 in
+      --debug)
+        export CURRENT_LOG_LEVEL=DEBUG
+        shift
+        ;;
+      --help | -h)
+        show_help
+        exit 0
+        ;;
+      --version)
+        echo "nix-hug version ${VERSION}"
+        exit 0
+        ;;
+      fetch | ls | export | import | import-all | scan)
+        command="$1"
+        shift
+        break
+        ;;
+      *)
+        error "Unknown option or command: $1"
         show_help
         exit 1
-    fi
-
-    check_dependencies
-
-    case "$command" in
-        fetch)
-            cmd_fetch "$@"
-            ;;
-        ls)
-            cmd_ls "$@"
-            ;;
-        export)
-            cmd_export "$@"
-            ;;
-        import)
-            cmd_import "$@"
-            ;;
-        import-all)
-            cmd_import_all "$@"
-            ;;
-        scan)
-            cmd_scan "$@"
-            ;;
+        ;;
     esac
+  done
+
+  if [[ -z "$command" ]]; then
+    show_help
+    exit 1
+  fi
+
+  check_dependencies
+
+  "cmd_${command//-/_}" "$@"
 }
 
 main "$@"

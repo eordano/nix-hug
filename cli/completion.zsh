@@ -19,7 +19,7 @@ _nix_hug_cached_repos() {
 }
 
 _nix_hug() {
-    local -a commands global_opts
+    local -a commands global_opts repo_opts
     commands=(
         'fetch:Fetch a Hugging Face repo into the Nix store'
         'ls:List files in a Hugging Face repo'
@@ -33,42 +33,11 @@ _nix_hug() {
         '--help[Show help]'
         '--version[Show version]'
     )
-
-    local -a fetch_opts=(
-        '--ref[Git ref to fetch]:ref:'
-        '--include[Include filter pattern]:pattern:'
-        '--exclude[Exclude filter pattern]:pattern:'
-        '--file[Filter file]:file:_files'
-        '--dry-run[Show what would be fetched]'
-        '--help[Show help]'
-    )
-    local -a ls_opts=(
+    repo_opts=(
         '--ref[Git ref]:ref:'
         '--include[Include filter pattern]:pattern:'
         '--exclude[Exclude filter pattern]:pattern:'
         '--file[Filter file]:file:_files'
-        '--help[Show help]'
-    )
-    local -a export_opts=(
-        '--ref[Git ref]:ref:'
-        '--include[Include filter pattern]:pattern:'
-        '--exclude[Exclude filter pattern]:pattern:'
-        '--file[Filter file]:file:_files'
-        '--help[Show help]'
-    )
-    local -a import_opts=(
-        '--ref[Git ref]:ref:'
-        '--include[Include filter pattern]:pattern:'
-        '--exclude[Exclude filter pattern]:pattern:'
-        '--file[Filter file]:file:_files'
-        '--help[Show help]'
-        '1:repository:_nix_hug_cached_repos'
-    )
-    local -a import_all_opts=(
-        {-y,--yes}'[Skip confirmation prompt]'
-        '--help[Show help]'
-    )
-    local -a scan_opts=(
         '--help[Show help]'
     )
 
@@ -79,12 +48,14 @@ _nix_hug() {
     fi
 
     case "$words[2]" in
-        fetch)  _arguments -s $fetch_opts ;;
-        ls)     _arguments -s $ls_opts ;;
-        export) _arguments -s $export_opts ;;
-        import)     _arguments -s $import_opts ;;
-        import-all) _arguments -s $import_all_opts ;;
-        scan)       _arguments -s $scan_opts ;;
+        fetch) _arguments -s $repo_opts \
+            '--lfs-url[LFS download URL prefix, for git+ URLs]:url:' \
+            '--vendor[Vendor the file tree into DIR for offline evaluation]:dir:_files -/' \
+            '--dry-run[Show what would be fetched]' ;;
+        ls | export) _arguments -s $repo_opts ;;
+        import) _arguments -s $repo_opts '1:repository:_nix_hug_cached_repos' ;;
+        import-all) _arguments -s {-y,--yes}'[Skip confirmation prompt]' '--help[Show help]' ;;
+        scan) _arguments -s '--help[Show help]' ;;
     esac
 }
 
