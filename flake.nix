@@ -22,7 +22,7 @@
         pkgs:
         pkgs.stdenv.mkDerivation {
           pname = "nix-hug";
-          version = "6.0.1";
+          version = "6.0.2";
 
           src = pkgs.lib.fileset.toSource {
             root = ./.;

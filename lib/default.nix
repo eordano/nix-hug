@@ -494,7 +494,7 @@ in
     maintainers = [ ];
   };
   version = {
-    lib = "6.0.1";
+    lib = "6.0.2";
     api = 1;
   };
 }

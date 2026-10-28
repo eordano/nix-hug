@@ -1,6 +1,6 @@
 # shellcheck shell=bash
 # shellcheck disable=SC2034  # used by sourcing scripts
-VERSION="6.0.1"
+VERSION="6.0.2"
 
 declare -A LOG_LEVELS=(
   [TRACE]=0
