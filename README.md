@@ -284,6 +284,12 @@ Use `nix-hug scan` to see what's available before importing.
 The imported store path has the same layout as `nix-hug fetch`, so the output
 can be used with `buildCache` and `nix build`.
 
+When the Hub cannot describe the revision without a token (a private or gated
+repo, or no network), `import` prints a `derivation` pinned to the imported
+copy's hash instead of a `fetchModel` call. It evaluates without `--impure`,
+needs no token, and works with `buildCache`, but it builds only where that copy
+is in the store (or a binary cache serves it).
+
 ```console
 $ nix-hug import <url> [options]
 ```

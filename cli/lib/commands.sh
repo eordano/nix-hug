@@ -620,9 +620,8 @@ import_from_hf_cache() {
     if [[ -n "$file_tree_hash" ]]; then
       generate_usage_example "$detected_type" "$org/$repo" "$resolved_rev" "$filter_json" "$file_tree_hash"
     else
-      info "Fetching hashes..."
-      cmd_fetch "$org/$repo" --ref "$resolved_rev" "${filters[@]}" ||
-        warn "revision $resolved_rev is not on the Hub; imported without a fetch expression"
+      generate_store_pinned_example "$store_path" "$store_name" "$org/$repo" "$resolved_rev" ||
+        warn "could not pin $store_path by its hash; imported without a fetch expression"
     fi
     return 0
   fi
@@ -714,9 +713,8 @@ import_from_hf_cache() {
   if [[ -n "$file_tree_hash" ]]; then
     generate_usage_example "$detected_type" "$org/$repo" "$resolved_rev" "$filter_json" "$file_tree_hash"
   else
-    info "Fetching hashes..."
-    cmd_fetch "$org/$repo" --ref "$resolved_rev" "${filters[@]}" ||
-      warn "revision $resolved_rev is not on the Hub; imported without a fetch expression"
+    generate_store_pinned_example "$store_path" "$store_name" "$org/$repo" "$resolved_rev" ||
+      warn "could not pin $store_path by its hash; imported without a fetch expression"
   fi
 }
 

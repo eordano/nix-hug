@@ -208,6 +208,29 @@ generate_usage_example() {
   print_usage_block "$(format_fetch_call "  " "nix-hug-lib" "$repo_type" "$repo_id" "$ref" "$filter_json" "$file_tree_hash" "$tree_path" "$git_repo_hash")"
 }
 
+generate_store_pinned_example() {
+  local store_path="$1" store_name="$2" repo_id="$3" rev="$4"
+  local nar_hash pinned
+  nar_hash=$(nix-store --query --hash "$store_path") &&
+    nar_hash=$(nix --extra-experimental-features 'nix-command' hash convert --hash-algo sha256 --to sri "${nar_hash#sha256:}") &&
+    pinned=$(nix --extra-experimental-features 'nix-command' eval --raw --expr \
+      "(derivation { name = \"$store_name\"; system = \"any\"; builder = \"any\"; outputHashMode = \"recursive\"; outputHash = \"$nar_hash\"; }).outPath") &&
+    [[ "$pinned" == "$store_path" ]] || return 1
+  info "The Hub does not serve $repo_id anonymously (private, gated or offline); the expression pins the imported copy by its hash and needs no token"
+  print_usage_block "  derivation {
+    name = \"$store_name\";
+    system = pkgs.stdenv.hostPlatform.system;
+    builder = \"/bin/sh\";
+    args = [ \"-c\" \"echo 'nix-hug: $store_name is not in the Nix store; run nix-hug import $repo_id --ref $rev' >&2; exit 1\" ];
+    outputHashMode = \"recursive\";
+    outputHash = \"$nar_hash\";
+  } // {
+    org = \"${repo_id%%/*}\";
+    repo = \"${repo_id#*/}\";
+    revision = \"$rev\";
+  }"
+}
+
 suggest_vendor() {
   info "Tip: --vendor DIR writes a lock file of the upstream hashes, like flake.lock: evaluation needs no network, and a stale hash is reported in SRI format."
 }
